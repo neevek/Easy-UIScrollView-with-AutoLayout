@@ -143,7 +143,7 @@
         NSArray *constraints = self.constraints;
         for (int i = 0; i < constraints.count; ++i) {
             NSLayoutConstraint *constraint = constraints[i];
-            if (constraint.firstItem != self || constraint.secondItem != nil) {
+            if (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight) {
                 [self removeConstraint:constraint];
             }
         }
@@ -185,9 +185,23 @@
             
             [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
             
-            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"V:|-%g-[current]-(>=%g)-|" : @"H:|-%g-[current]-(>=%g)-|";
-            vfl = [NSString stringWithFormat:format, self.layoutInsets.top, self.layoutInsets.bottom];
-            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
+            if (self.centerItems) {
+                NSLayoutConstraint *centerConstraint = [NSLayoutConstraint constraintWithItem:current
+                                                                                    attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
+                                                                                    relatedBy:NSLayoutRelationEqual
+                                                                                       toItem:self
+                                                                                    attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
+                                                                                   multiplier:1.0
+                                                                                     constant:0];
+                [self addConstraint:centerConstraint];
+                
+            } else {
+                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"V:|-%g-[current]-(>=%g)-|" : @"H:|-%g-[current]-(>=%g)-|";
+                vfl = [NSString stringWithFormat:format, self.layoutInsets.top, self.layoutInsets.bottom];
+                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
+            }
+
+            
             
             prev = current;
         }

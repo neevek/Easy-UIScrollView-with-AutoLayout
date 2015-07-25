@@ -20,9 +20,10 @@
     [super viewDidLoad];
     
     self.scrollViewContentContainer.orientation = UILayoutConstraintAxisHorizontal;
-    self.scrollViewContentContainer.shouldRestrictSubviewsWithinBounds = YES;
     self.scrollViewContentContainer.layoutInsets = UIEdgeInsetsMake(10, 10, 10, 10);
     self.scrollViewContentContainer.itemMargin = 20;
+    self.scrollViewContentContainer.shouldRestrictSubviewsWithinBounds = YES;
+    self.scrollViewContentContainer.centerItems = YES;
 
     NSMutableArray *toBeDeleted = [[NSMutableArray alloc] init];
         for (int i = 0; i < 10; ++i) {
