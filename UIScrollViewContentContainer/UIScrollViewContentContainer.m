@@ -143,8 +143,13 @@
         NSArray *constraints = self.constraints;
         for (int i = 0; i < constraints.count; ++i) {
             NSLayoutConstraint *constraint = constraints[i];
-            if (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight) {
-                [self removeConstraint:constraint];
+            // if it is constraint for my subview
+            if (constraint.firstItem != self || constraint.secondItem != nil) {
+                // if we should change the dimension constraints for this subview in [self updateConstraints],
+                // or the constraint is not width/height constraint
+                if (self.shouldRestrictSubviewsWithinBounds || (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight)) {
+                    [self removeConstraint:constraint];
+                }
             }
         }
         

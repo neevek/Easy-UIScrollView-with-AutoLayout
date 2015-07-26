@@ -26,17 +26,19 @@
     self.scrollViewContentContainer.centerItems = YES;
 
     NSMutableArray *toBeDeleted = [[NSMutableArray alloc] init];
-        for (int i = 0; i < 10; ++i) {
-            UIView *v = [self createImageView];
-            [self.scrollViewContentContainer addSubview:v];
-    
-            if (i % 2 == 0) {
-                [toBeDeleted addObject:v];
-            }
+    for (int i = 0; i < 10; ++i) {
+        UIView *v = [self createImageView];
+        [self.scrollViewContentContainer addSubview:v];
+        
+        if (i % 2 == 0) {
+            [toBeDeleted addObject:v];
+        } else {
+            [self.scrollViewContentContainer addSubview:[self createLabelView:i]];
         }
-        // we don't need to call 'invalidateIntrinsicContentSize' at this point
-        // since we are in viewDidLoad(before constrains of contentView are applied for the first time)
-        // [self.scrollViewContentContainer invalidateIntrinsicContentSize];
+    }
+    // we don't need to call 'invalidateIntrinsicContentSize' at this point
+    // since we are in viewDidLoad(before constrains of contentView are applied for the first time)
+    // [self.scrollViewContentContainer invalidateIntrinsicContentSize];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         for (UIView *v in toBeDeleted) {
@@ -50,7 +52,7 @@
         // fill contentView
         [self.scrollViewContentContainer sizeToFit];
     });
-
+    
 }
 
 -(UIImageView *)createImageView {
@@ -58,6 +60,14 @@
     imageView.translatesAutoresizingMaskIntoConstraints = NO;
     
     return imageView;
+}
+
+-(UILabel *)createLabelView:(NSInteger)index {
+    UILabel *label = [[UILabel alloc] init];
+    label.translatesAutoresizingMaskIntoConstraints = NO;
+    label.text = [NSString stringWithFormat:@"[Test Text %zd]", index];
+    
+    return label;
 }
 
 
