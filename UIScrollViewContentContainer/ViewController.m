@@ -26,16 +26,21 @@
     self.scrollViewContentContainer.centerItems = YES;
 
     NSMutableArray *toBeDeleted = [[NSMutableArray alloc] init];
-    for (int i = 0; i < 10; ++i) {
-        UIView *v = [self createImageView];
-        [self.scrollViewContentContainer addSubview:v];
-        
-        if (i % 2 == 0) {
-            [toBeDeleted addObject:v];
-        } else {
-            [self.scrollViewContentContainer addSubview:[self createLabelView:i]];
-        }
-    }
+//    for (int i = 0; i < 10; ++i) {
+//        UIView *v = [self createImageView];
+//        [self.scrollViewContentContainer addSubview:v];
+//        
+//        if (i % 2 == 0) {
+//            [toBeDeleted addObject:v];
+//        } else {
+//            [self.scrollViewContentContainer addSubview:[self createLabelView:i]];
+//        }
+//    }
+    
+    UIView *testView = [[UIView alloc] init];
+    testView.translatesAutoresizingMaskIntoConstraints = NO;
+    testView.backgroundColor = [UIColor redColor];
+    [self.scrollViewContentContainer addSubview:testView];
     // we don't need to call 'invalidateIntrinsicContentSize' at this point
     // since we are in viewDidLoad(before constrains of contentView are applied for the first time)
     // [self.scrollViewContentContainer invalidateIntrinsicContentSize];

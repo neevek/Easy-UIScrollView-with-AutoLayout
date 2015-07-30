@@ -15,6 +15,7 @@
 		433014601B63698800377B93 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 4330145E1B63698800377B93 /* LaunchScreen.xib */; };
 		4330146C1B63698800377B93 /* UIScrollViewContentContainerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 4330146B1B63698800377B93 /* UIScrollViewContentContainerTests.m */; };
 		433014771B6369C800377B93 /* UIScrollViewContentContainer.m in Sources */ = {isa = PBXBuildFile; fileRef = 433014751B6369C800377B93 /* UIScrollViewContentContainer.m */; };
+		43E622D11B69BECD007890CD /* SimpleViewPager.m in Sources */ = {isa = PBXBuildFile; fileRef = 43E622D01B69BECD007890CD /* SimpleViewPager.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,8 @@
 		4330146B1B63698800377B93 /* UIScrollViewContentContainerTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UIScrollViewContentContainerTests.m; sourceTree = "<group>"; };
 		433014751B6369C800377B93 /* UIScrollViewContentContainer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIScrollViewContentContainer.m; sourceTree = "<group>"; };
 		433014761B6369C800377B93 /* UIScrollViewContentContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIScrollViewContentContainer.h; sourceTree = "<group>"; };
+		43E622CF1B69BECD007890CD /* SimpleViewPager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimpleViewPager.h; sourceTree = "<group>"; };
+		43E622D01B69BECD007890CD /* SimpleViewPager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimpleViewPager.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,8 +87,10 @@
 		4330144E1B63698800377B93 /* UIScrollViewContentContainer */ = {
 			isa = PBXGroup;
 			children = (
-				433014751B6369C800377B93 /* UIScrollViewContentContainer.m */,
 				433014761B6369C800377B93 /* UIScrollViewContentContainer.h */,
+				433014751B6369C800377B93 /* UIScrollViewContentContainer.m */,
+				43E622CF1B69BECD007890CD /* SimpleViewPager.h */,
+				43E622D01B69BECD007890CD /* SimpleViewPager.m */,
 				433014531B63698800377B93 /* AppDelegate.h */,
 				433014541B63698800377B93 /* AppDelegate.m */,
 				433014561B63698800377B93 /* ViewController.h */,
@@ -225,6 +230,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				433014581B63698800377B93 /* ViewController.m in Sources */,
+				43E622D11B69BECD007890CD /* SimpleViewPager.m in Sources */,
 				433014551B63698800377B93 /* AppDelegate.m in Sources */,
 				433014521B63698800377B93 /* main.m in Sources */,
 				433014771B6369C800377B93 /* UIScrollViewContentContainer.m in Sources */,
@@ -424,6 +430,7 @@
 				433014711B63698800377B93 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		433014721B63698800377B93 /* Build configuration list for PBXNativeTarget "UIScrollViewContentContainerTests" */ = {
 			isa = XCConfigurationList;
@@ -432,6 +439,7 @@
 				433014741B63698800377B93 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

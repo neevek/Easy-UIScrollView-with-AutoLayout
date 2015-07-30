@@ -16,6 +16,13 @@
 
 -(void)updateConstraints {
     if (self.subviews.count > 0) {
+        if ([self.superview isKindOfClass:[UIScrollView class]]) {
+            UIScrollView *parent = (UIScrollView *)self.superview;
+            if (parent.pagingEnabled) {
+                self.pagingEnabled = YES;
+            }
+        }
+        
         if (self.heightConstraint == nil) {
             self.heightConstraint = [self findConstraintForView:self layoutAttribute:NSLayoutAttributeHeight];
         }
@@ -23,15 +30,21 @@
             self.widthConstraint = [self findConstraintForView:self layoutAttribute:NSLayoutAttributeWidth];
         }
         
+        [self prepareForUpdateConstraints];
+        
         if (self.orientation == UILayoutConstraintAxisHorizontal) {
-            if (self.shouldRestrictSubviewsWithinBounds) {
+            if (self.pagingEnabled) {
+                [self expandSubviewsForPaging];
+            } else if (self.shouldRestrictSubviewsWithinBounds) {
                 [self restrictSubviewsHeightWithinBoundsIfNeeded];
             }
             
             [self growWidthIfNeeded];
             
         } else {
-            if (self.shouldRestrictSubviewsWithinBounds) {
+            if (self.pagingEnabled) {
+                [self expandSubviewsForPaging];
+            } else if (self.shouldRestrictSubviewsWithinBounds) {
                 [self restrictSubviewsWidthWithinBoundsIfNeeded];
             }
             
@@ -46,12 +59,129 @@
 
 -(NSLayoutConstraint *)findConstraintForView:(UIView *)view layoutAttribute:(NSLayoutAttribute)layoutAttribute {
     for (NSLayoutConstraint *heightConstraint in view.constraints) {
-        if (heightConstraint.firstAttribute == layoutAttribute) {
+        if (heightConstraint.firstItem == view && heightConstraint.firstAttribute == layoutAttribute) {
             return heightConstraint;
         }
     }
     
     return nil;
+}
+
+-(void)expandSubviewsForPaging {
+    const NSUInteger count = self.subviews.count;
+    for (int i = 0; i < count; ++i) {
+        if (self.orientation == UILayoutConstraintAxisHorizontal) {
+            [self expandWidthForSubview:self.subviews[i] atIndex:i];
+        } else {
+            [self expandHeightForSubview:self.subviews[i] atIndex:i];
+        }
+    }
+}
+
+-(void)expandWidthForSubview:(UIView *)subview atIndex:(int)index {
+    NSLayoutConstraint *widthConstraint = [self findConstraintForView:subview layoutAttribute:NSLayoutAttributeWidth];
+    if (widthConstraint) {
+        widthConstraint.constant = [self adjustSubviewWidth:[UIScreen mainScreen].bounds.size.width atIndex:index];
+    } else {
+        widthConstraint = [NSLayoutConstraint constraintWithItem:subview
+                                                       attribute:NSLayoutAttributeWidth
+                                                       relatedBy:NSLayoutRelationEqual
+                                                          toItem:nil
+                                                       attribute:0
+                                                      multiplier:1.0f
+                                                        constant:[self adjustSubviewWidth:[UIScreen mainScreen].bounds.size.width atIndex:index]];
+        [subview addConstraint:widthConstraint];
+    }
+    
+    NSLayoutConstraint *heightConstraint = [self findConstraintForView:subview layoutAttribute:NSLayoutAttributeHeight];
+    CGFloat height = self.heightConstraint.constant - self.layoutInsets.top - self.layoutInsets.bottom;
+    if (heightConstraint) {
+        heightConstraint.constant = height;
+    } else {
+        heightConstraint = [NSLayoutConstraint constraintWithItem:subview
+                                                        attribute:NSLayoutAttributeHeight
+                                                        relatedBy:NSLayoutRelationEqual
+                                                           toItem:nil
+                                                        attribute:0
+                                                       multiplier:1.0f
+                                                         constant:height];
+        [subview addConstraint:heightConstraint];
+    }
+}
+
+-(void)expandHeightForSubview:(UIView *)subview atIndex:(int)index {
+    NSLayoutConstraint *heightConstraint = [self findConstraintForView:subview layoutAttribute:NSLayoutAttributeHeight];
+    if (heightConstraint) {
+        heightConstraint.constant = [self adjustSubviewHeight:self.heightConstraint.constant atIndex:index];
+    } else {
+        heightConstraint = [NSLayoutConstraint constraintWithItem:subview
+                                                        attribute:NSLayoutAttributeHeight
+                                                        relatedBy:NSLayoutRelationEqual
+                                                           toItem:nil
+                                                        attribute:0
+                                                       multiplier:1.0f
+                                                         constant:[self adjustSubviewHeight:self.heightConstraint.constant atIndex:index]];
+        [subview addConstraint:heightConstraint];
+    }
+    
+    NSLayoutConstraint *widthConstraint = [self findConstraintForView:subview layoutAttribute:NSLayoutAttributeWidth];
+    CGFloat width = self.widthConstraint.constant - self.layoutInsets.left - self.layoutInsets.right;
+    if (widthConstraint) {
+        widthConstraint.constant = width;
+    } else {
+        widthConstraint = [NSLayoutConstraint constraintWithItem:subview
+                                                        attribute:NSLayoutAttributeWidth
+                                                        relatedBy:NSLayoutRelationEqual
+                                                           toItem:nil
+                                                        attribute:0
+                                                       multiplier:1.0f
+                                                         constant:width];
+        [subview addConstraint:widthConstraint];
+    }
+}
+
+-(CGFloat)adjustSubviewWidth:(CGFloat)width atIndex:(NSUInteger)index {
+    const NSUInteger count = self.subviews.count;
+    if (index == 0) {
+        width -= self.layoutInsets.left;
+        if (index + 1 == count) {
+            width -= self.layoutInsets.right;
+        } else {
+            width -= (self.itemMargin / 2);
+        }
+    } else if (index > 0) {
+        width -= (self.itemMargin / 2);
+        
+        if (index + 1 == count) {
+            width -= self.layoutInsets.right;
+        } else {
+            width -= (self.itemMargin / 2);
+        }
+    }
+    
+    return width;
+}
+
+-(CGFloat)adjustSubviewHeight:(CGFloat)height atIndex:(NSUInteger)index {
+    const NSUInteger count = self.subviews.count;
+    if (index == 0) {
+        height -= self.layoutInsets.top;
+        if (index + 1 == count) {
+            height -= self.layoutInsets.bottom;
+        } else {
+            height -= (self.itemMargin / 2);
+        }
+    } else if (index > 0) {
+        height -= (self.itemMargin / 2);
+        
+        if (index + 1 == count) {
+            height -= self.layoutInsets.bottom;
+        } else {
+            height -= (self.itemMargin / 2);
+        }
+    }
+    
+    return height;
 }
 
 -(void)restrictSubviewsHeightWithinBoundsIfNeeded {
@@ -138,78 +268,99 @@
     return totalHeight;
 }
 
--(void)resetConstraints {
-    if (self.subviews.count > 0) {
-        NSArray *constraints = self.constraints;
-        for (int i = 0; i < constraints.count; ++i) {
-            NSLayoutConstraint *constraint = constraints[i];
-            // if it is constraint for my subview
-            if (constraint.firstItem != self || constraint.secondItem != nil) {
-                // if we should change the dimension constraints for this subview in [self updateConstraints],
-                // or the constraint is not width/height constraint
-                if (self.shouldRestrictSubviewsWithinBounds || (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight)) {
-                    [self removeConstraint:constraint];
-                }
+-(void)prepareForUpdateConstraints {
+    if (self.subviews.count == 0) {
+        return;
+    }
+    
+    NSArray *constraints = self.constraints;
+    for (int i = 0; i < constraints.count; ++i) {
+        NSLayoutConstraint *constraint = constraints[i];
+        // if it is constraint for my subview
+        if (constraint.firstItem != self || constraint.secondItem != nil) {
+            // if we should change the dimension constraints for this subview in [self updateConstraints],
+            // or the constraint is not width/height constraint
+            if (self.shouldRestrictSubviewsWithinBounds || (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight)) {
+                [self removeConstraint:constraint];
             }
+        }
+    }
+}
+
+-(void)resetConstraints {
+    if (self.subviews.count == 0) {
+        return;
+    }
+    
+    NSArray *constraints = self.constraints;
+    for (int i = 0; i < constraints.count; ++i) {
+        NSLayoutConstraint *constraint = constraints[i];
+        // if it is constraint for my subview
+        if (constraint.firstItem != self || constraint.secondItem != nil) {
+            // if we should change the dimension constraints for this subview in [self updateConstraints],
+            // or the constraint is not width/height constraint
+            if (self.shouldRestrictSubviewsWithinBounds || (constraint.firstAttribute != NSLayoutAttributeWidth && constraint.firstAttribute != NSLayoutAttributeHeight)) {
+                [self removeConstraint:constraint];
+            }
+        }
+    }
+    
+    UIView *prev = nil;
+    UIView *next = nil;
+    for (int i = 0; i < self.subviews.count; ++i) {
+        UIView *current = self.subviews[i];
+        
+        if (i + 1 < self.subviews.count) {
+            next = self.subviews[i + 1];
+        } else {
+            next = nil;
         }
         
-        UIView *prev = nil;
-        UIView *next = nil;
-        for (int i = 0; i < self.subviews.count; ++i) {
-            UIView *current = self.subviews[i];
+        NSDictionary *viewDict;
+        NSString *vfl;
+        
+        if (prev == nil && next == nil) {
+            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:|-%g-[current]-(>=%g)-|" : @"V:|-%g-[current]-(>=%g)-|";
+            vfl = [NSString stringWithFormat:format, self.layoutInsets.left, self.layoutInsets.right];
+            viewDict = NSDictionaryOfVariableBindings(current);
             
-            if (i + 1 < self.subviews.count) {
-                next = self.subviews[i + 1];
-            } else {
-                next = nil;
-            }
+        } else if (prev == nil) {
+            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:|-%g-[current]" : @"V:|-%g-[current]";
+            vfl = [NSString stringWithFormat:format, self.layoutInsets.left];
+            viewDict = NSDictionaryOfVariableBindings(current);
             
-            NSDictionary *viewDict;
-            NSString *vfl;
+        } else if (next == nil) {
+            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:[prev]-%g-[current]-(>=%g)-|" : @"V:[prev]-%g-[current]-(>=%g)-|";
+            vfl = [NSString stringWithFormat:format, self.itemMargin, self.layoutInsets.right];
+            viewDict = NSDictionaryOfVariableBindings(current, prev);
             
-            if (prev == nil && next == nil) {
-                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:|-%g-[current]-(>=%g)-|" : @"V:|-%g-[current]-(>=%g)-|";
-                vfl = [NSString stringWithFormat:format, self.layoutInsets.left, self.layoutInsets.right];
-                viewDict = NSDictionaryOfVariableBindings(current);
-                
-            } else if (prev == nil) {
-                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:|-%g-[current]" : @"V:|-%g-[current]";
-                vfl = [NSString stringWithFormat:format, self.layoutInsets.left];
-                viewDict = NSDictionaryOfVariableBindings(current);
-                
-            } else if (next == nil) {
-                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:[prev]-%g-[current]-(>=%g)-|" : @"V:[prev]-%g-[current]-(>=%g)-|";
-                vfl = [NSString stringWithFormat:format, self.itemMargin, self.layoutInsets.right];
-                viewDict = NSDictionaryOfVariableBindings(current, prev);
-                
-            } else {
-                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:[prev]-%g-[current]-%g-[next]" : @"V:[prev]-%g-[current]-%g-[next]";
-                vfl = [NSString stringWithFormat:format, self.itemMargin, self.itemMargin];
-                viewDict = NSDictionaryOfVariableBindings(current, prev, next);
-            }
-            
-            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
-            
-            if (self.centerItems) {
-                NSLayoutConstraint *centerConstraint = [NSLayoutConstraint constraintWithItem:current
-                                                                                    attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
-                                                                                    relatedBy:NSLayoutRelationEqual
-                                                                                       toItem:self
-                                                                                    attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
-                                                                                   multiplier:1.0
-                                                                                     constant:0];
-                [self addConstraint:centerConstraint];
-                
-            } else {
-                NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"V:|-%g-[current]-(>=%g)-|" : @"H:|-%g-[current]-(>=%g)-|";
-                vfl = [NSString stringWithFormat:format, self.layoutInsets.top, self.layoutInsets.bottom];
-                [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
-            }
-
-            
-            
-            prev = current;
+        } else {
+            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"H:[prev]-%g-[current]-%g-[next]" : @"V:[prev]-%g-[current]-%g-[next]";
+            vfl = [NSString stringWithFormat:format, self.itemMargin, self.itemMargin];
+            viewDict = NSDictionaryOfVariableBindings(current, prev, next);
         }
+        
+        [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
+        
+        if (self.centerItems) {
+            NSLayoutConstraint *centerConstraint = [NSLayoutConstraint constraintWithItem:current
+                                                                                attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
+                                                                                relatedBy:NSLayoutRelationEqual
+                                                                                   toItem:self
+                                                                                attribute:self.orientation == UILayoutConstraintAxisHorizontal ? NSLayoutAttributeCenterY : NSLayoutAttributeCenterX
+                                                                               multiplier:1.0
+                                                                                 constant:0];
+            [self addConstraint:centerConstraint];
+            
+        } else {
+            NSString *format =self.orientation == UILayoutConstraintAxisHorizontal ? @"V:|-%g-[current]-(>=%g)-|" : @"H:|-%g-[current]-(>=%g)-|";
+            vfl = [NSString stringWithFormat:format, self.layoutInsets.top, self.layoutInsets.bottom];
+            [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:vfl options:0 metrics:nil views:viewDict]];
+        }
+        
+        
+        
+        prev = current;
     }
 }
 

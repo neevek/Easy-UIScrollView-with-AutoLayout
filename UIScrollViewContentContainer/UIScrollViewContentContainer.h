@@ -15,5 +15,6 @@
 @property (nonatomic) UILayoutConstraintAxis orientation;
 @property (nonatomic) BOOL shouldRestrictSubviewsWithinBounds;
 @property (nonatomic) BOOL centerItems;
+@property (nonatomic) BOOL pagingEnabled;
 
 @end
